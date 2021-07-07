@@ -9,7 +9,7 @@
 #include <geometry_msgs/Transform.h>
 #include <nav_msgs/Odometry.h>
 #include <visualization_msgs/Marker.h>
-
+#include "std_msgs/Float32.h"
 
 
 using namespace std;
@@ -19,6 +19,8 @@ tf::TransformListener *tf_listener;
 tf::StampedTransform robot_transform;
 tf::Quaternion q;
 tf::Vector3 v;
+float color[3] = {0,0,0};
+int marker_id = 0;
 
 
 void listener(){
@@ -27,7 +29,7 @@ void listener(){
   string child_id = "base_link";
   string parent_id = "map";
 
-  tf_listener->waitForTransform(child_id, parent_id, ros::Time::now(), ros::Duration(0.07));
+  tf_listener->waitForTransform(child_id, parent_id, ros::Time::now(), ros::Duration(0.04));
   try {
 
     tf_listener->lookupTransform(parent_id, child_id, ros::Time(0), robot_transform);
@@ -36,66 +38,89 @@ void listener(){
     robot_transform.getBasis().getRPY(roll, pitch, yaw);
     q = robot_transform.getRotation();
     v = robot_transform.getOrigin();
-    std::cout << "- Robot Translation: [" << v.getX() << ", " << v.getY() << ", " << v.getZ() << "]" << std::endl;
-    std::cout << "- Rotation: in Quaternion [" << q.getX() << ", " << q.getY() << ", "
-              << q.getZ() << ", " << q.getW() << "]" << std::endl;
-
-
-    
+    // std::cout << "- Robot Translation: [" << v.getX() << ", " << v.getY() << ", " << v.getZ() << "]" << std::endl;
+    // std::cout << "- Rotation: in Quaternion [" << q.getX() << ", " << q.getY() << ", "
+    //           << q.getZ() << ", " << q.getW() << "]" << std::endl;
+    // 
     }
-
     catch (tf::TransformException& ex)
     {
       std::cout << "Exception thrown:" << ex.what() << std::endl;
     }
-    
 }
 
+void co2_callback(const std_msgs::Float32::ConstPtr& msg){
+    listener();
 
+    float data = msg->data;
+    if (data >10000){
+      data = 10000;
+    }
+    float percent = data/10000;
+    cout << "CO2:" << percent<<endl;
+    if( percent <= 0.5){
+      color[0]= 0.5+percent;
+      color[1]= 1.0;
+      color[2]= 0.4;
+    }
+    if (percent > 0.5){
+      color[0]= 1;
+      color[1]= 0.8-percent*0.3;
+      color[2]= 0.6;
+    }
+}
 
 int main(int argc, char** argv){
 
-  ros::init(argc, argv, "co2_concentration");
+  ros::init(argc, argv, "co2_marker");
   ros::NodeHandle n;
-  ros::Rate r(1);
 
+  ros::Rate r(1);
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-  uint32_t shape = visualization_msgs::Marker::CUBE;
+  ros::Subscriber sub = n.subscribe("CO2_ppm", 1, co2_callback);
+
+  uint32_t shape = visualization_msgs::Marker::SPHERE;
 
   tf_listener = new tf::TransformListener();
+  
+
+
 
 
   while (ros::ok())
   {
+    ros::spinOnce();
     listener();
+
     visualization_msgs::Marker marker;
-    marker.header.frame_id = "my_frame";
+    marker.header.frame_id = "map";
     marker.header.stamp = ros::Time::now();
   
     marker.ns = "basic_shapes";
-    marker.id = 0;
-
+    marker.id = marker_id;
     marker.type = shape;
 
+    // position
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = v.getX();
     marker.pose.position.y = v.getY();
-    marker.pose.position.z = v.getZ();
+    marker.pose.position.z = 0;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
-    marker.pose.orientation.w = 1.0;
+    marker.pose.orientation.w = 0.5;
 
-    marker.scale.x = 1.0;
-    marker.scale.y = 1.0;
-    marker.scale.z = 1.0;
-
-    marker.color.r = 1.0f;
-    marker.color.g = 1.0f;
-    marker.color.b = 0.0f;
+    // size
+    marker.scale.x = 2.5;
+    marker.scale.y = 2.5;
+    marker.scale.z = 0.01;
+    // color
+    marker.color.r = color[0];
+    marker.color.g = color[1];
+    marker.color.b = color[2];
     marker.color.a = 1.0;
 
-    marker.lifetime = ros::Duration();
+    marker.lifetime = ros::Duration(1000);
 
     while (marker_pub.getNumSubscribers() < 1)
     {
@@ -106,8 +131,10 @@ int main(int argc, char** argv){
       ROS_WARN_ONCE("Please create a subscriber to the marker");
       sleep(1);
     }
+
     marker_pub.publish(marker);
     r.sleep();
+    marker_id ++;
 
 
   }

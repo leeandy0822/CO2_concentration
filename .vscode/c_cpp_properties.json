@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "",
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "includePath": [
+        "/home/leeandy/catkin_ws/devel/include/**",
+        "/home/leeandy/aerial_robotics/devel/include/**",
+        "/opt/ros/melodic/include/**",
+        "/home/leeandy/aerial_robotics/src/hw11/include/**",
+        "/home/leeandy/aerial_robotics/src/usb_cam/include/**",
+        "/home/leeandy/catkin_ws/src/using_markers/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS"
+    }
+  ],
+  "version": 4
+}
