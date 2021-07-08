@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(learning_tf)
+project(co2_concentration)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -208,7 +208,6 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-add_executable(tf_broadcaster src/tf_broadcaster.cpp)
-add_executable(tf_listener src/tf_listener.cpp)
-target_link_libraries(tf_broadcaster ${catkin_LIBRARIES})
-target_link_libraries(tf_listener ${catkin_LIBRARIES})
+add_executable(draw_co2 src/draw_co2.cpp)
+target_link_libraries(draw_co2 ${catkin_LIBRARIES})
+

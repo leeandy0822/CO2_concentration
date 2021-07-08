@@ -19,9 +19,9 @@ tf::TransformListener *tf_listener;
 tf::StampedTransform robot_transform;
 tf::Quaternion q;
 tf::Vector3 v;
-float color[3] = {0,0,0};
+float color[3] = {1,1,1};
 int marker_id = 0;
-
+int height = 0;
 
 void listener(){
   // use tf_listener to get the transformation from camera_link to tag 0
@@ -33,7 +33,7 @@ void listener(){
   try {
 
     tf_listener->lookupTransform(parent_id, child_id, ros::Time(0), robot_transform);
-    cout << "Frame id:" << robot_transform.frame_id_ << ", Child id:" << robot_transform.child_frame_id_ << endl;
+    // cout << "Frame id:" << robot_transform.frame_id_ << ", Child id:" << robot_transform.child_frame_id_ << endl;
     double yaw, pitch, roll;
     robot_transform.getBasis().getRPY(roll, pitch, yaw);
     q = robot_transform.getRotation();
@@ -53,20 +53,26 @@ void co2_callback(const std_msgs::Float32::ConstPtr& msg){
     listener();
 
     float data = msg->data;
-    if (data >10000){
-      data = 10000;
-    }
-    float percent = data/10000;
-    cout << "CO2:" << percent<<endl;
+    float percent = data/15000;
+
+    cout << "CO2: " << data<<"ppm" <<endl;
+    cout << "Concentration: "<<percent <<endl;
+
+
     if( percent <= 0.5){
       color[0]= 0.5+percent;
       color[1]= 1.0;
       color[2]= 0.4;
     }
-    if (percent > 0.5){
+    if (percent > 0.5 && percent < 1){
       color[0]= 1;
-      color[1]= 0.8-percent*0.3;
+      color[1]= 0.8-percent*0.2;
       color[2]= 0.6;
+    }
+    if (percent >= 1){
+      color[0]= 0.8-percent*0.1;
+      color[1]= 0.6;
+      color[2]= 1;
     }
 }
 
@@ -104,7 +110,7 @@ int main(int argc, char** argv){
     marker.action = visualization_msgs::Marker::ADD;
     marker.pose.position.x = v.getX();
     marker.pose.position.y = v.getY();
-    marker.pose.position.z = 0;
+    marker.pose.position.z = height;
     marker.pose.orientation.x = 0.0;
     marker.pose.orientation.y = 0.0;
     marker.pose.orientation.z = 0.0;
@@ -120,7 +126,7 @@ int main(int argc, char** argv){
     marker.color.b = color[2];
     marker.color.a = 1.0;
 
-    marker.lifetime = ros::Duration(1000);
+    marker.lifetime = ros::Duration(0);
 
     while (marker_pub.getNumSubscribers() < 1)
     {
@@ -135,8 +141,10 @@ int main(int argc, char** argv){
     marker_pub.publish(marker);
     r.sleep();
     marker_id ++;
-
-
+    
+    if (marker_id%20 == 0){
+        height += 0.05;
+    }
   }
  
 }
