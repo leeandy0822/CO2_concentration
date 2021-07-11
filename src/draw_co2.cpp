@@ -49,31 +49,49 @@ void listener(){
     }
 }
 
+void HSVtoRGB(float H){
+
+    float s = 1;
+    float v = 1;
+    float C = s*v;
+    float X = C*(1-abs(fmod(H/60.0, 2)-1));
+    float m = v-C;
+    float r,g,b;
+    if(H >= 0 && H < 60){
+        r = C,g = X,b = 0;
+    }
+    else if(H >= 60 && H < 120){
+        r = X,g = C,b = 0;
+    }
+    else if(H >= 120 && H < 180){
+        r = 0,g = C,b = X;
+    }
+    else if(H >= 180 && H < 240){
+        r = 0,g = X,b = C;
+    }
+    else if(H >= 240 && H < 300){
+        r = X,g = 0,b = C;
+    }
+    else{
+        r = C,g = 0,b = X;
+    }
+    color[0] = (r+m);
+    color[1] = (g+m);
+    color[2] = (b+m);
+}
+
+
 void co2_callback(const std_msgs::Float32::ConstPtr& msg){
     listener();
 
     float data = msg->data;
-    float percent = data/15000;
-
-    cout << "CO2: " << data<<"ppm" <<endl;
-    cout << "Concentration: "<<percent <<endl;
-
-
-    if( percent <= 0.5){
-      color[0]= 0.5+percent;
-      color[1]= 1.0;
-      color[2]= 0.4;
+    float concentration = data/10000*100;
+    if (concentration > 100){
+        concentration = 100;
     }
-    if (percent > 0.5 && percent < 1){
-      color[0]= 1;
-      color[1]= 0.8-percent*0.2;
-      color[2]= 0.6;
-    }
-    if (percent >= 1){
-      color[0]= 0.8-percent*0.1;
-      color[1]= 0.6;
-      color[2]= 1;
-    }
+    cout << "CO2: " << data<<" ppm" <<endl;
+    cout << "Concentration: "<< concentration <<" %"<<endl;
+    HSVtoRGB(100-concentration);
 }
 
 int main(int argc, char** argv){
@@ -117,9 +135,9 @@ int main(int argc, char** argv){
     marker.pose.orientation.w = 0.5;
 
     // size
-    marker.scale.x = 2.5;
-    marker.scale.y = 2.5;
-    marker.scale.z = 0.01;
+    marker.scale.x = 0.1;
+    marker.scale.y = 0.1;
+    marker.scale.z = 0.001;
     // color
     marker.color.r = color[0];
     marker.color.g = color[1];
