@@ -49,8 +49,8 @@ void listener(){
     }
 }
 
+// turn co2 concentration more smoothly
 void HSVtoRGB(float H){
-
     float s = 1;
     float v = 1;
     float C = s*v;
@@ -93,6 +93,7 @@ void co2_callback(const std_msgs::Float32::ConstPtr& msg){
     cout << "Concentration: "<< concentration <<" %"<<endl;
     HSVtoRGB(100-concentration);
 }
+
 
 int main(int argc, char** argv){
 
