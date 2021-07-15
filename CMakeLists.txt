@@ -61,10 +61,10 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 # )
 
 ## Generate services in the 'srv' folder
-add_service_files(
-  FILES
-  co2_trans.srv
-)
+# add_service_files(
+#   FILES
+#   co2_trans.srv
+# )
 
 ## Generate actions in the 'action' folder
 # add_action_files(
