@@ -56,8 +56,19 @@ def callback(data):
   # pre-process the image by resizing it, converting it to
   # graycale, blurring it, and computing an edge map
   image = imutils.resize(image, height=500)
-  gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-  blurred = cv2.GaussianBlur(gray, (5, 5), 0)
+  
+    # 裁切區域的 x 與 y 座標（左上角）
+  x = 150
+  y = 400
+
+  #   裁切區域的長度與寬度
+  w = 300
+  h = 200
+  # 裁切圖片
+  crop = image[y:y+h, x:x+w]
+  
+  gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
+  blurred = cv2.GaussianBlur(gray, (1, 1), 0)
   edged = cv2.Canny(blurred, 50, 200, 255)
 
   # find contours in the edge map, then sort them by their
@@ -82,7 +93,7 @@ def callback(data):
   # extract the thermostat display, apply a perspective transform
   # to it
   warped = four_point_transform(gray, displayCnt.reshape(4, 2))
-  output = four_point_transform(image, displayCnt.reshape(4, 2))
+  output = four_point_transform(crop, displayCnt.reshape(4, 2))
 
 
   # 裁切區域的 x 與 y 座標（左上角）
@@ -198,6 +209,8 @@ def callback(data):
     print("no number detected")  
   cv2.imshow("output",output)
   cv2.imshow("draw",draw_img0)
+  cv2.imshow("crop",crop)
+  
   cv2.waitKey(1)
 
 def receive_message():

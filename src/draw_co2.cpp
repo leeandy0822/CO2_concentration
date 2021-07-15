@@ -85,7 +85,7 @@ void co2_callback(const std_msgs::Float32::ConstPtr& msg){
     listener();
 
     float data = msg->data;
-    float concentration = data/10000*100;
+    float concentration = (data-410)/150*100;
     if (concentration > 100){
         concentration = 100;
     }
@@ -136,8 +136,8 @@ int main(int argc, char** argv){
     marker.pose.orientation.w = 0.5;
 
     // size
-    marker.scale.x = 0.1;
-    marker.scale.y = 0.1;
+    marker.scale.x = 0.2;
+    marker.scale.y = 0.2;
     marker.scale.z = 0.001;
     // color
     marker.color.r = color[0];
