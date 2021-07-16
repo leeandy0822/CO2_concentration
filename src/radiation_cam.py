@@ -9,6 +9,7 @@
 # Import the necessary libraries
 import rospy # Python library for ROS
 from sensor_msgs.msg import Image # Image is the message type
+from std_msgs.msg import Float32
 from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
 import cv2 # OpenCV library
 # import the necessary packages
@@ -36,7 +37,7 @@ DIGITS_LOOKUP = {
 
 
 def callback(data):
- 
+  result = 0
   # Used to convert between ROS and OpenCV images
   br = CvBridge()
  
@@ -56,97 +57,67 @@ def callback(data):
   # pre-process the image by resizing it, converting it to
   # graycale, blurring it, and computing an edge map
   image = imutils.resize(image, height=500)
-  
-    # 裁切區域的 x 與 y 座標（左上角）
-  x = 150
-  y = 400
+  image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
-  #   裁切區域的長度與寬度
-  w = 300
-  h = 200
+  #裁切區域的 x 與 y 座標（左上角）
+  x = 230
+  y = 435
+
+  # 裁切區域的長度與寬度
+  w = 140
+  h = 160
   # 裁切圖片
-  crop = image[y:y+h, x:x+w]
-  
-  gray = cv2.cvtColor(crop, cv2.COLOR_BGR2GRAY)
-  blurred = cv2.GaussianBlur(gray, (1, 1), 0)
-  edged = cv2.Canny(blurred, 50, 200, 255)
-
-  # find contours in the edge map, then sort them by their
-  # size in descending order
-  cnts = cv2.findContours(edged.copy(), cv2.RETR_EXTERNAL,
-	  cv2.CHAIN_APPROX_SIMPLE)
-  cnts = imutils.grab_contours(cnts)
-  cnts = sorted(cnts, key=cv2.contourArea, reverse=True)
-  displayCnt = None
-  # loop over the contours
-  for c in cnts:
-	  # approximate the contour
-	  peri = cv2.arcLength(c, True)
-	  approx = cv2.approxPolyDP(c, 0.02 * peri, True)
-	  # if the contour has four vertices, then we have found
-	  # the thermostat display
-	  if len(approx) == 4:
-		  displayCnt = approx
-		  break
+  warped = image[y:y+h, x:x+w]
+  gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY)
 
 
-  # extract the thermostat display, apply a perspective transform
-  # to it
-  warped = four_point_transform(gray, displayCnt.reshape(4, 2))
-  output = four_point_transform(crop, displayCnt.reshape(4, 2))
-
-
-  # 裁切區域的 x 與 y 座標（左上角）
-  x = 20
-  y = 30
-
-  #   裁切區域的長度與寬度
-  w = 130
-  h = 95
-  # 裁切圖片
-  warped = warped[y:y+h, x:x+w]
-  output = output[y:y+h, x:x+w]
 
   # threshold the warped image, then apply a series of morphological
   # operations to cleanup the thresholded image
-  thresh = cv2.threshold(warped, 50, 255,
+  thresh = cv2.threshold(gray, 20, 200,
 	  cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 
-  kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4, 4))
+  kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,1))
 
   thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
-
-
   # display the digits
 
-  kernel = np.ones((3,3), np.uint8)
-  erosion = cv2.erode(thresh, kernel, iterations = 1)
-  dilation = cv2.dilate(erosion, kernel, iterations = 3)
-
-
+  kernel_e = np.ones((5,5), np.uint8)
+  erosion = cv2.erode(thresh, kernel, iterations = 4)
+  
+  kernel_d = np.ones((4,4), np.uint8)
+  dilation = cv2.dilate(erosion, kernel, iterations = 5)
+  
   # find contours in the thresholded image, then initialize the
   # digit contours lists
   cnts = cv2.findContours(dilation.copy(), cv2.RETR_EXTERNAL,
 	  cv2.CHAIN_APPROX_SIMPLE)
 
-
+  
   cnts = imutils.grab_contours(cnts)
   digitCnts = []
+  print(len(cnts))
   # loop over the digit area candidates
   for c in cnts:
 	  # compute the bounding box of the contour
 	  (x, y, w, h) = cv2.boundingRect(c)
 	  # if the contour is sufficiently large, it must be a digit
-	  if w >= 20 and (h >= 40 and h <= 70):
+	  if (w >= 20 and w<=90) and (h >= 40 ):
 	  	digitCnts.append(c)
 
+  print(len(digitCnts))
   # sort the contours from left-to-right, then initialize the
   # actual digits themselves
-  digitCnts = contours.sort_contours(digitCnts,
-  	method="left-to-right")[0]
-  digits = []
+  try:
+    digitCnts = contours.sort_contours(digitCnts,
+  	  method="left-to-right")[0]
+    digits = []
 
-  draw_img0 = cv2.drawContours(output.copy(),digitCnts,-1,(0,255,255),3)
+    draw_img0 = cv2.drawContours(warped.copy(),digitCnts,-1,(0,255,255),3)
+    cv2.imshow("draw",draw_img0)
+
+  except:
+    print("no available digits")
 
   try:
       # loop over each of the digits
@@ -163,8 +134,8 @@ def callback(data):
 	    segments = [
 		    ((0, 0), (w, dH)),	# top
 		   ((5, 0), (dW+2, h // 2)),	# top-left
-		   ((w - dW, 0), (w-2, h // 2)),	# top-right
-		    ((1, (h // 2) - dHC) , (w-2, (h // 2) + dHC)), # center
+		   ((w - dW, 0), (w, h // 2)),	# top-right
+		    ((0, (h // 2) - dHC) , (w, (h // 2) + dHC)), # center
 		   ((0, h // 2), (dW, h)),	# bottom-left
 		    ((w - dW-3, h // 2), (w-5, h)),	# bottom-right
 		   ((0, h - dH), (w-5, h))	# bottom
@@ -183,7 +154,7 @@ def callback(data):
 		    # if the total number of non-zero pixels is greater than
 		    # 50% of the area, mark the segment as "on"
 		    # print(total/float(area))
-		    if total / float(area) > 0.4:
+		    if total / float(area) > 0.5:
 		  	  on[i]= 1
        
        
@@ -192,8 +163,8 @@ def callback(data):
 
 	    digit = DIGITS_LOOKUP[tuple(on)]
 	    digits.append(digit)
-	    cv2.rectangle(output, (x, y), (x + w, y + h), (0, 255, 0), 1)
-	    cv2.putText(output, str(digit), (x - 10, y - 10),
+	    cv2.rectangle(warped, (x, y), (x + w, y + h), (0, 255, 0), 1)
+	    cv2.putText(warped, str(digit), (x - 10, y - 10),
 		    cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 0), 2)
 
   except:
@@ -205,11 +176,17 @@ def callback(data):
   try:
     print(u"{}.{}{} \u00b0C".format(*digits))
     print(digits)
+    result = int(digits[0])+0.1*int(digit[1])+ 0.01*int(digit[2])
   except:
     print("no number detected")  
-  cv2.imshow("output",output)
-  cv2.imshow("draw",draw_img0)
-  cv2.imshow("crop",crop)
+  cv2.imshow("output",warped)
+  cv2.imshow("thresh",dilation)
+  cv2.imshow("screen",image)
+  
+  img_msg = br.cv2_to_imgmsg(image, encoding="passthrough")
+  
+  radiation_pub.publish(result)
+  img_pub.publish(img_msg)
   
   cv2.waitKey(1)
 
@@ -219,6 +196,7 @@ def receive_message():
   # Anonymous = True makes sure the node has a unique name. Random
   # numbers are added to the end of the name. 
   rospy.init_node('video_sub_py', anonymous=True)
+
    
   # Node is subscribing to the video_frames topic
   try:
@@ -232,4 +210,9 @@ def receive_message():
   cv2.destroyAllWindows()
   
 if __name__ == '__main__':
+  global img_pub
+  global radiation_pub
+  img_pub = rospy.Publisher('radiation_img_detect', Image, queue_size=30)
+  radiation_pub = rospy.Publisher('radiation_meter', Float32, queue_size=10)
+  
   receive_message()
