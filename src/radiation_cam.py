@@ -77,16 +77,16 @@ def callback(data):
   thresh = cv2.threshold(gray, 20, 200,
 	  cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 
-  kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,1))
+  kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (4,1))
 
   thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
   # display the digits
 
   kernel_e = np.ones((5,5), np.uint8)
-  erosion = cv2.erode(thresh, kernel, iterations = 4)
+  erosion = cv2.erode(thresh, kernel, iterations = 6)
   
   kernel_d = np.ones((4,4), np.uint8)
-  dilation = cv2.dilate(erosion, kernel, iterations = 5)
+  dilation = cv2.dilate(erosion, kernel, iterations = 6)
   
   # find contours in the thresholded image, then initialize the
   # digit contours lists
@@ -102,7 +102,7 @@ def callback(data):
 	  # compute the bounding box of the contour
 	  (x, y, w, h) = cv2.boundingRect(c)
 	  # if the contour is sufficiently large, it must be a digit
-	  if (w >= 20 and w<=90) and (h >= 40 ):
+	  if (w >= 10 and w <= 120) and (h >= 20 and h <= 120 ):
 	  	digitCnts.append(c)
 
   print(len(digitCnts))
@@ -170,16 +170,14 @@ def callback(data):
   except:
     print("Number detection error")
 
-  
 
   # display the digits
   try:
-    print(u"{}.{}{} \u00b0C".format(*digits))
-    print(digits)
-    result = int(digits[0])+0.1*int(digit[1])+ 0.01*int(digit[2])
+    result = digits[0]+digits[1]*0.1+digits[2]*0.01
+    print("Radiation concentratino:", result, "uSv")
   except:
     print("no number detected")  
-  cv2.imshow("output",warped)
+    
   cv2.imshow("thresh",dilation)
   cv2.imshow("screen",image)
   
@@ -189,6 +187,12 @@ def callback(data):
   img_pub.publish(img_msg)
   
   cv2.waitKey(1)
+
+
+
+
+
+
 
 def receive_message():
  
@@ -208,7 +212,10 @@ def receive_message():
  
   # Close down the video stream when done
   cv2.destroyAllWindows()
-  
+
+
+
+
 if __name__ == '__main__':
   global img_pub
   global radiation_pub
