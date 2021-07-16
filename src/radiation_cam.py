@@ -102,7 +102,7 @@ def callback(data):
 	  # compute the bounding box of the contour
 	  (x, y, w, h) = cv2.boundingRect(c)
 	  # if the contour is sufficiently large, it must be a digit
-	  if (w >= 10 and w <= 120) and (h >= 20 and h <= 120 ):
+	  if (w >= 10 and w<= 140 ) and (h >= 10 and h<= 140):
 	  	digitCnts.append(c)
 
   print(len(digitCnts))
@@ -174,11 +174,10 @@ def callback(data):
   # display the digits
   try:
     result = digits[0]+digits[1]*0.1+digits[2]*0.01
-    print("Radiation concentratino:", result, "uSv")
+    print("Radiation concentration:", result, "uSv")
   except:
     print("no number detected")  
-    
-  cv2.imshow("thresh",dilation)
+
   cv2.imshow("screen",image)
   
   img_msg = br.cv2_to_imgmsg(image, encoding="passthrough")
@@ -212,9 +211,6 @@ def receive_message():
  
   # Close down the video stream when done
   cv2.destroyAllWindows()
-
-
-
 
 if __name__ == '__main__':
   global img_pub

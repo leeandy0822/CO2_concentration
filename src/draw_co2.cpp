@@ -101,7 +101,7 @@ int main(int argc, char** argv){
 
   ros::Rate r(1);
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-  ros::Subscriber sub = n.subscribe("radiation_meter", 1, co2_callback);
+  ros::Subscriber sub = n.subscribe("Radiation_arduino", 1, co2_callback);
 
   uint32_t shape = visualization_msgs::Marker::SPHERE;
 
