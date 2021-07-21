@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   tf
-  std_srvs
   std_msgs
   message_generation
   sensor_msgs
