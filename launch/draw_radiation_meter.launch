@@ -1,0 +1,7 @@
+<launch>
+    <node name="radiation_detect"        pkg="co2_concentration"      type="radiation_cam.py">
+    </node>
+
+    <node name="radiation_meter_draw"        pkg="co2_concentration"      type="draw_co2">
+    </node>
+</launch>

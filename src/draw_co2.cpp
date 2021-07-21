@@ -87,12 +87,12 @@ void co2_callback(const std_msgs::Float32::ConstPtr& msg){
     listener();
 
     float data = msg->data;
-    float concentration = (data-0)/0.3*100;
+
+    float concentration = (data-0)/0.2*100;
     if (concentration > 100){
         concentration = 100;
     }
     cout << "CO2: " << data<<" ppm" <<endl;
-    cout << "Concentration: "<< concentration <<" %"<<endl;
     HSVtoRGB(100-concentration);
 }
 
@@ -108,7 +108,8 @@ int main(int argc, char** argv){
   // ROS_INFO("Got parameter : %s", tp.c_str());
   // cout << tp <<endl;
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-  ros::Subscriber sub = n.subscribe("radiation_meter", 1, co2_callback);
+
+  ros::Subscriber sub = n.subscribe("Radiation_arduino", 1, co2_callback);
 
   uint32_t shape = visualization_msgs::Marker::SPHERE;
 
