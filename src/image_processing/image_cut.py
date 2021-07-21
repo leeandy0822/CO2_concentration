@@ -1,16 +1,9 @@
-from inspect import getcoroutinelocals
-import rospy # Python library for ROS
-from sensor_msgs.msg import Image # Image is the message type
-from std_msgs.msg import Float32
-from cv_bridge import CvBridge # Package to convert between ROS and OpenCV Images
-import cv2 # OpenCV library
 # import the necessary packages
 from imutils.perspective import four_point_transform
 from imutils import contours
 import imutils
 import cv2
 import numpy as np
-import time
 
 class image_process:
     def __init__(self,image):

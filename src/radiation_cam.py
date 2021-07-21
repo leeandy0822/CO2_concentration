@@ -51,8 +51,6 @@ def callback(data):
   image_preprocessor = image_cut.image_process(image)
   cnts, warped,image,thresh, digitCnts = image_preprocessor.preprocessing()
   
-
-
   # sort the contours from left-to-right, then initialize the
   # actual digits themselves
   
