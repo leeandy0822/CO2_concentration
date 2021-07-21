@@ -33,17 +33,11 @@ void listener(){
 
   tf_listener->waitForTransform(child_id, parent_id, ros::Time::now(), ros::Duration(0.04));
   try {
-
     tf_listener->lookupTransform(parent_id, child_id, ros::Time(0), robot_transform);
-    // cout << "Frame id:" << robot_transform.frame_id_ << ", Child id:" << robot_transform.child_frame_id_ << endl;
     double yaw, pitch, roll;
     robot_transform.getBasis().getRPY(roll, pitch, yaw);
     q = robot_transform.getRotation();
-    v = robot_transform.getOrigin();
-    // std::cout << "- Robot Translation: [" << v.getX() << ", " << v.getY() << ", " << v.getZ() << "]" << std::endl;
-    // std::cout << "- Rotation: in Quaternion [" << q.getX() << ", " << q.getY() << ", "
-    //           << q.getZ() << ", " << q.getW() << "]" << std::endl;
-    // 
+    v = robot_transform.getOrigin(); 
     }
     catch (tf::TransformException& ex)
     {
@@ -98,25 +92,21 @@ void co2_callback(const std_msgs::Float32::ConstPtr& msg){
 
 
 int main(int argc, char** argv){
-  ros::init(argc, argv, "co2_marker");
+  
+  ros::init(argc, argv, "marker");
   ros::NodeHandle n;
 
   ros::Rate r(1);
 
-  // std:string tp;
-  // bool ifget1 = ros::param::get("topic",tp) ;
+  std:string tp;
+  ros::param::get("topic",tp) ;
+
   // ROS_INFO("Got parameter : %s", tp.c_str());
   // cout << tp <<endl;
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-
-  ros::Subscriber sub = n.subscribe("Radiation_arduino", 1, co2_callback);
-
+  ros::Subscriber sub = n.subscribe(tp, 1, co2_callback);
   uint32_t shape = visualization_msgs::Marker::SPHERE;
-
   tf_listener = new tf::TransformListener();
-
-
-
 
   while (ros::ok())
   {

@@ -210,6 +210,6 @@ include_directories(
 # catkin_add_nosetests(test)
 
 
-add_executable(draw_co2 src/draw_co2.cpp)
-target_link_libraries(draw_co2 ${catkin_LIBRARIES})
+add_executable(draw_map src/draw_map.cpp)
+target_link_libraries(draw_map ${catkin_LIBRARIES})
 

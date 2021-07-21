@@ -1,7 +1,9 @@
 <launch>
-    <node name="radiation_detect"        pkg="co2_concentration"      type="radiation_cam.py">
+
+    <param name="topic" value="Radiation_arduino" />
+    <node name="radiation_detect"        pkg="co2_rad_map"      type="radiation_cam.py">
     </node>
 
-    <node name="radiation_meter_draw"        pkg="co2_concentration"      type="draw_co2">
+    <node name="radiation_meter_draw"        pkg="co2_rad_map"      type="draw_map">
     </node>
 </launch>
