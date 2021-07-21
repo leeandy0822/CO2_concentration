@@ -7,6 +7,7 @@
 # - https://automaticaddison.com
  
 # Import the necessary libraries
+from inspect import getcoroutinelocals
 import rospy # Python library for ROS
 from sensor_msgs.msg import Image # Image is the message type
 from std_msgs.msg import Float32
@@ -74,7 +75,7 @@ def callback(data):
 
   # threshold the warped image, then apply a series of morphological
   # operations to cleanup the thresholded image
-  thresh = cv2.threshold(gray, 20, 200,
+  thresh = cv2.threshold(gray, 10, 200,
 	  cv2.THRESH_BINARY_INV | cv2.THRESH_OTSU)[1]
 
   kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3,1))
@@ -82,11 +83,11 @@ def callback(data):
   thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
   # display the digits
 
-  kernel_e = np.ones((5,5), np.uint8)
-  erosion = cv2.erode(thresh, kernel, iterations = 4)
+  kernel_e = np.ones((4,4), np.uint8)
+  erosion = cv2.erode(thresh, kernel, iterations = 5)
   
-  kernel_d = np.ones((4,4), np.uint8)
-  dilation = cv2.dilate(erosion, kernel, iterations = 5)
+  kernel_d = np.ones((5,5), np.uint8)
+  dilation = cv2.dilate(erosion, kernel, iterations = 4)
   
   # find contours in the thresholded image, then initialize the
   # digit contours lists
@@ -111,6 +112,7 @@ def callback(data):
   try:
     digitCnts = contours.sort_contours(digitCnts,
   	  method="left-to-right")[0]
+    global digits
     digits = []
 
     draw_img0 = cv2.drawContours(warped.copy(),digitCnts,-1,(0,255,255),3)
@@ -176,13 +178,17 @@ def callback(data):
   try:
     print(u"{}.{}{} \u00b0C".format(*digits))
     print(digits)
-    result = int(digits[0])+0.1*int(digit[1])+ 0.01*int(digit[2])
+    result = digits[0]+digits[1]*0.1+digits[2]*0.01
+
+
   except:
     print("no number detected")  
+    
   cv2.imshow("output",warped)
   cv2.imshow("thresh",dilation)
   cv2.imshow("screen",image)
   
+  print("result: ",result)
   img_msg = br.cv2_to_imgmsg(image, encoding="passthrough")
   
   radiation_pub.publish(result)

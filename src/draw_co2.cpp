@@ -15,6 +15,8 @@
 using namespace std;
 using namespace ros;
 
+
+
 tf::TransformListener *tf_listener;
 tf::StampedTransform robot_transform;
 tf::Quaternion q;
@@ -85,7 +87,7 @@ void co2_callback(const std_msgs::Float32::ConstPtr& msg){
     listener();
 
     float data = msg->data;
-    float concentration = (data-410)/150*100;
+    float concentration = (data-0)/0.3*100;
     if (concentration > 100){
         concentration = 100;
     }
@@ -96,18 +98,21 @@ void co2_callback(const std_msgs::Float32::ConstPtr& msg){
 
 
 int main(int argc, char** argv){
-
   ros::init(argc, argv, "co2_marker");
   ros::NodeHandle n;
 
   ros::Rate r(1);
+
+  // std:string tp;
+  // bool ifget1 = ros::param::get("topic",tp) ;
+  // ROS_INFO("Got parameter : %s", tp.c_str());
+  // cout << tp <<endl;
   ros::Publisher marker_pub = n.advertise<visualization_msgs::Marker>("visualization_marker", 1);
-  ros::Subscriber sub = n.subscribe("CO2_ppm", 1, co2_callback);
+  ros::Subscriber sub = n.subscribe("radiation_meter", 1, co2_callback);
 
   uint32_t shape = visualization_msgs::Marker::SPHERE;
 
   tf_listener = new tf::TransformListener();
-  
 
 
 
@@ -136,8 +141,8 @@ int main(int argc, char** argv){
     marker.pose.orientation.w = 0.5;
 
     // size
-    marker.scale.x = 0.2;
-    marker.scale.y = 0.2;
+    marker.scale.x = 0.4;
+    marker.scale.y = 0.4;
     marker.scale.z = 0.001;
     // color
     marker.color.r = color[0];

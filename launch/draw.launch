@@ -1,0 +1,10 @@
+<launch>
+
+    <param name="topic" value="CO2_ppm" />
+    <node name="co2_marker"        pkg="co2_concentration"      type="draw_co2">
+    </node>
+
+    <param name="topic" value="radiation" />
+    <node name="radiation_meter_marker"        pkg="co2_concentration"      type="draw_co2">
+    </node>
+</launch>
