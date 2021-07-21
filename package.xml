@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>co2_concentration</name>
+  <name>co2_rad_map</name>
   <version>0.0.0</version>
-  <description>The co2_concentration package</description>
+  <description>The co2_rad_map package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
